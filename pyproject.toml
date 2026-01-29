@@ -1,0 +1,73 @@
+[project]
+name = "tmdb-imp"
+version = "0.1.0"
+description = "Import Letterboxd exports into The Movie Database (TMDB)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+authors = [
+  { name = "Nagasaki Nightmare", email = "nuclearfall@protonmail.com" }
+]
+
+keywords = [
+  "letterboxd",
+  "tmdb",
+  "imdb",
+  "import"
+  "movies",
+  "watchlist",
+  "lists",
+  "cli",
+  "data-migration"
+]
+
+dependencies = [
+  "curl-cffi>=0.6.0",
+  "beautifulsoup4>=4.12.0",
+  "tmdbsimple>=2.9.1",
+]
+
+# -----------------------------
+# CLI entry point
+# -----------------------------
+
+[project.scripts]
+tmdb-imp = "tmdb_imp.cli:main"
+
+# -----------------------------
+# Build system (src layout)
+# -----------------------------
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# -----------------------------
+# Tooling
+# -----------------------------
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.ruff]
+line-length = 100
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
