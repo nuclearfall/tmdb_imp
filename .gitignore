@@ -1,0 +1,81 @@
+# -----------------------------
+# Python
+# -----------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+build/
+dist/
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.cache/
+
+# -----------------------------
+# Virtual Environments
+# -----------------------------
+.venv/
+venv/
+ENV/
+env/
+.python-version
+
+# -----------------------------
+# Logs / Runtime
+# -----------------------------
+*.log
+*.sqlite3
+*.db
+*.pid
+
+# -----------------------------
+# Editor / IDE
+# -----------------------------
+.vscode/
+.idea/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+.sublime/
+
+# -----------------------------
+# OS Files
+# -----------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# -----------------------------
+# Node / Frontend (just in case)
+# -----------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# -----------------------------
+# Archives
+# -----------------------------
+*.zip
+*.tar
+*.tar.gz
+*.tar.xz
+*.7z
+
+# -----------------------------
+# Project Specific
+# -----------------------------
+tmdb_session.txt
+lb_cookies.json
+data/*
+!data/.gitkeep
