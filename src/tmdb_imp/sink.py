@@ -1,12 +1,18 @@
 import tmdbsimple as tmdb
+import requests
 from .util import load_json, save_json
 from .config import LIST_CACHE
 
+API_BASE = "https://api.themoviedb.org/3"
 
 class TMDBSink:
     def __init__(self, session_id, list_meta):
+        self.session_id = session_id
+        self.api_key = tmdb.API_KEY
+
         self.account = tmdb.Account(session_id)
         self.account.info()
+
         self.list = None
         self.cache = load_json(LIST_CACHE, {})
 
@@ -26,6 +32,26 @@ class TMDBSink:
                 self.cache[key] = self.list.id
                 save_json(LIST_CACHE, self.cache)
 
+    # ---------- real TMDB rating writer ----------
+    def _set_rating(self, media_type: str, tmdb_id: int, value: float):
+        if not (0.5 <= value <= 10.0):
+            raise ValueError(f"TMDB rating must be 0.5–10.0, got {value}")
+
+        url = f"{API_BASE}/{media_type}/{tmdb_id}/rating"
+        params = {
+            "api_key": self.api_key,
+            "session_id": self.session_id,
+        }
+
+        resp = requests.post(url, params=params, json={"value": value}, timeout=30)
+        data = resp.json()
+
+        if not resp.ok or not data.get("success"):
+            raise RuntimeError(f"TMDB rating failed: {data}")
+
+        return data
+
+    # ---------- event applier ----------
     def apply(self, ev):
         if not ev.tmdb_id or not ev.media_type:
             raise ValueError("TMDBSink.apply() called with missing tmdb_id or media_type")
@@ -36,17 +62,13 @@ class TMDBSink:
         if ev.kind == "list":
             if not self.list:
                 raise RuntimeError("List event received but no TMDB list is configured")
-            print(f"{ev.tmdb_id} of type {mt}")
+
             self.list.add_item(media_id=ev.tmdb_id, media_type=mt)
 
-            # Optional rating (IMDb imports)
-            if ev.payload and ev.payload.get("rating"):
-                rating = round(float(ev.payload["rating"]), 1)
-                if mt == "movie":
-                    self.account.rated_movies(movie_id=ev.tmdb_id, value=rating)
-                elif mt == "tv":
-                    self.account.rated_tv(tv_id=ev.tmdb_id, value=rating)
-
+            # Optional rating
+            if ev.payload and ev.payload.get("rating") is not None:
+                # payload.rating is already in TMDB scale (0.5–10)
+                self._set_rating(mt, ev.tmdb_id, float(ev.payload["rating"]))
             return
 
         # ---- Watchlist ----
@@ -74,23 +96,10 @@ class TMDBSink:
             )
             return
 
-        # ---- Ratings (movie vs tv split) ----
+        # ---- Ratings ----
         if ev.kind == "rating":
-            rating = round(ev.payload["rating"] * 2, 1)
-
-            if mt == "movie":
-                self.account.rated_movies(
-                    movie_id=ev.tmdb_id,
-                    value=rating,
-                )
-            elif mt == "tv":
-                self.account.rated_tv(
-                    tv_id=ev.tmdb_id,
-                    value=rating,
-                )
-            else:
-                raise ValueError(f"Unknown media_type: {mt}")
-
+            # already converted to TMDB scale in sink earlier
+            self._set_rating(mt, ev.tmdb_id, float(ev.payload["rating"]))
             return
 
         raise ValueError(f"Unhandled event kind: {ev.kind}")

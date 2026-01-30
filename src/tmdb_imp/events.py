@@ -7,9 +7,12 @@ def parse_events(mode, rows):
         elif mode == "likes":
             yield LBEvent("like", r.get("Date"), r["Letterboxd URI"], {})
         elif mode == "ratings":
-            yield LBEvent("rating", r.get("Date"), r["Letterboxd URI"], {
-                "rating": float(r["Rating"])
-            })
+            yield LBEvent(
+                "rating",
+                r.get("Date"),
+                r["Letterboxd URI"],
+                {"rating": float(r["Rating"]) * 2},  # <- scale here
+            )
         elif mode == "watched":
             yield LBEvent("watched", r.get("Date"), r["Letterboxd URI"], {})
         elif mode == "list":
